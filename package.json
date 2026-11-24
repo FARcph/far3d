@@ -1,0 +1,8 @@
+{
+  "name": "far3d",
+  "private": true,
+  "description": "3D-modeller af FAR's rum i Kulturhuset Fabula og Palmehuset til farcph.dk",
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "esbuild": "^0.24.0", "three": "^0.169.0" }
+}
