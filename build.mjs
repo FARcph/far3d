@@ -30,10 +30,13 @@ const entries = {
   plateau: "import { plateau } from './venues.js'; boot({ plateau });",
   restaurant: "import { restaurant } from './venues.js'; boot({ restaurant });",
   palmehus: "import { palmehus } from './palmehus.js'; boot({ palmehus });",
+  // Dagbygger til Virksomheder (egen fil, se src/dag.js)
+  dag: "import { bootDag } from './dag.js'; bootDag();",
 };
 await fs.mkdir('dist', { recursive: true });
 for (const [name, code] of Object.entries(entries)) {
-  await esbuild.build({ stdin: { contents: "import { boot } from './embed.js'; " + code, resolveDir: 'src', loader: 'js' }, bundle: true, minify: true, format: 'esm', outfile: `dist/far3d-${name}.js`, plugins: [cdnThree, slim], logLevel: 'warning', legalComments: 'none' });
+  const head = name === 'dag' ? '' : "import { boot } from './embed.js'; ";
+  await esbuild.build({ stdin: { contents: head + code, resolveDir: 'src', loader: 'js' }, bundle: true, minify: true, format: 'esm', outfile: `dist/far3d-${name}.js`, plugins: [cdnThree, slim], logLevel: 'warning', legalComments: 'none' });
 }
 const css = (await fs.readFile('src/style.css', 'utf8')).replace(/\s*\n\s*/g, '');
 await fs.writeFile('dist/far3d.css', css + '\n');
