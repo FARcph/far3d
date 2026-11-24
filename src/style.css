@@ -83,6 +83,9 @@ ol.dag-program li.fri b{font-weight:600}
 .dag-cta{margin-top:1.25rem}
 .far3d-dag .dag-cta button{width:100%;background:#2f2f2f;color:#f5f5f5;padding:1rem 1.25rem;font-size:.875rem}
 .far3d-dag .dag-cta button:hover{background:#f5f5f5;color:#2f2f2f}
+.dag-hjaelp{margin:.9rem 0 0;font-size:1rem;line-height:1.5}
+.dag-hjaelp a{color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:.2em;text-decoration-thickness:1px}
+.dag-hjaelp a:hover{color:#9bb5d7}
 .dag-bar{display:none}
 @media (max-width:900px){
 .far3d-dag{grid-template-columns:minmax(0,1fr);gap:.5rem}

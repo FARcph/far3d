@@ -163,6 +163,12 @@ export function mountDag(root) {
     }
     cta.innerHTML = '';
     cta.append(knap('Forespørg på denne dag →', false, () => send(o, p)));
+    // Altid en vej udenom byggeren: fører ned til kontaktfeltet (FAR Kontakt fra forsiden), ellers mail
+    const hj = el('p', 'dag-hjaelp'), lnk = el('a');
+    lnk.href = 'mailto:hej@farcph.dk'; lnk.textContent = 'Tag altid bare fat i os';
+    lnk.onclick = e => { const k = document.querySelector(root.dataset.kontakt || '.far-kontakt'); if (k) { e.preventDefault(); k.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
+    hj.append('Passer det ikke helt? ', lnk, ', så finder vi en løsning sammen.');
+    cta.append(hj);
   }
   function send(o, p) {
     const f = FORMATER[s.format];
