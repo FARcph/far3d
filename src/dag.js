@@ -1,4 +1,4 @@
-import { createViewer } from './engine.js';
+import { createViewer, W } from './engine.js';
 import { huset } from './venues.js';
 import { palmehus } from './palmehus.js';
 
@@ -26,6 +26,13 @@ export const FORMATER = {
   aften: { navn: 'Eftermiddag og aften', tid: '13.00-20.00', maks: 2, mad: ['kage', 'aften'],
     slots: [['13.00', 'mad:kage'], ['13.30', 'rundvisning'], ['14.00', 'w'], ['15.30', 'w'], ['17.30', 'mad:aften'], ['20.00', 'farvel']] },
 };
+// Dagbyggeren viser kun den del af huset, dagen bruger (plateauet og bordet nedenunder), ikke køkkenet.
+const husetDag = { ...huset, view(name, layout, info) {
+  if (name !== 'persp') return huset.view(name, layout, info);
+  const P = (x, y, h) => { const [X, Z] = W(x, y); return [X, h, Z]; };
+  if (layout.endsWith('langsiden')) return { pos: P(26, 38, 30), tgt: P(12.8, 8.6, 1.0), fov: 30, fit: 1.2 };
+  return { pos: P(18.5, 24.5, 18), tgt: P(4.3, 7.4, 1.8), fov: 30, fit: 1.2 };
+} };
 const MAKS = { huset: { bord: 24, moede: 57, spise: 60 }, palmehus: { bord: 72, moede: 72, spise: 72 } };
 
 // Hvilket rum og hvilken opstilling programmet giver
@@ -87,15 +94,15 @@ export function mountDag(root) {
   root.append(valg, vis);
   const box = el('div', 'far3d'); box.dataset.ready = '1'; vis.append(box);
   const cap = el('div', 'far3d-cap'), stage = el('div', 'far3d-stage'), views = el('div', 'far3d-views');
-  box.append(cap, stage); stage.append(views);
+  box.append(cap, views, stage);
   const prog = el('ol', 'dag-program'), adv = el('div', 'dag-advarsel'), cta = el('div', 'dag-cta');
   vis.append(adv, prog, cta);
   const viewer = createViewer(stage, {
-    venues: { huset, palmehus }, touchAction: 'pan-y', wheelModifier: true,
+    venues: { huset: husetDag, palmehus }, touchAction: 'pan-y', wheelModifier: true,
     onChange: ({ info, def }) => { cap.innerHTML = `<b>${def.title}</b><span>${def.short(info)}</span>`; },
     onView: name => views.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === name)),
   });
-  let shown = '';
+  let shown = '', tegnet = false;
 
   function gruppe(titel, ...born) { const g = el('div', 'dag-gruppe'); g.append(el('div', 'dag-titel', titel), ...born); return g; }
   function tegn() {
@@ -129,20 +136,28 @@ export function mountDag(root) {
     for (const k of f.mad) mad.append(knap(MAD[k].navn, s.mad[k], () => { s.mad[k] = !s.mad[k]; tegn(); }));
     mad.append(knap('Rundvisning', s.rundvisning, () => { s.rundvisning = !s.rundvisning; tegn(); }));
     valg.append(gruppe('Mad og mere', mad));
+    // Bjælke nederst på mobil: viser at valget er taget og fører ned til dagen
+    const bar = el('div', 'dag-bar' + (a.length ? ' adv' : '') + (tegnet ? ' ping' : ''));
+    const txt = el('span');
+    txt.textContent = a.length ? a[0] : `${f.navn} · ${s.antal} personer`;
+    if (!a.length) { const sm = el('small'); sm.textContent = `${STED[s.sted].navn} · ${p.filter(x => !x.fri).length} punkter`; txt.append(sm); }
+    bar.append(txt, knap('Se dagen ↓', false, () => vis.scrollIntoView({ behavior: 'smooth', block: 'start' })));
+    valg.append(bar);
+    tegnet = true;
     // 3D
     const key = `${o.venue}:${o.layout}`;
     if (key !== shown) {
       const first = !shown; shown = key;
       viewer.show(o.venue, o.layout, first);
       views.innerHTML = '';
-      const vs = o.venue === 'huset' ? [['persp', 'Hele dagen'], ['op', 'Ovenpå'], ['ned', 'Nedenunder']] : [['persp', '3D'], ['eye', 'Indefra']];
+      const vs = o.venue === 'huset' ? [['persp', 'Overblik'], ['op', 'Ovenpå'], ['ned', 'Nedenunder']] : [['persp', 'Overblik'], ['eye', 'Indefra']];
       for (const [v, t] of vs) { const b = knap(t, false, () => viewer.setView(v)); b.dataset.v = v; views.append(b); }
     }
     // advarsler og program
     adv.innerHTML = a.map(t => `<p>${t}</p>`).join(''); adv.hidden = !a.length;
     prog.innerHTML = '';
     for (const x of p) {
-      const li = el('li', x.fri ? 'fri' : '', `<time>${x.tid}</time><span><b>${x.navn}</b>${x.tekst}</span><em>${x.sted}</em>`);
+      const li = el('li', x.fri ? 'fri' : '', `<time>${x.tid}</time><b>${x.navn}</b><em>${x.sted}</em><span>${x.tekst}</span>`);
       li.tabIndex = 0; li.onclick = () => viewer.setView(x.view); li.onkeydown = e => { if (e.key === 'Enter') viewer.setView(x.view); };
       prog.append(li);
     }
