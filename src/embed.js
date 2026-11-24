@@ -11,15 +11,19 @@ function mount(el, VENUES) {
   if (el.dataset.ready) return;
   el.dataset.ready = '1';
   const multi = el.dataset.venues;
+  // Start-opstilling: den første på listen, hvis listen er skrevet ud (fx huset:oplaeg-langsiden,...); ellers rummets pakke
+  const startOf = {};
   const entries = (multi ? multi.split(';') : [`${el.dataset.venue}:${el.dataset.layouts || ''}`]).map(s => {
     const [v, l = ''] = s.split(':').map(x => x.trim());
     const V = VENUES[v];
     if (!V) return null;
     const keys = l.split(',').map(x => x.trim()).filter(k => V.layouts[k]);
+    if (keys.length) startOf[v] = keys[0];
     return [v, keys.length ? keys : Object.keys(V.layouts)];
   }).filter(Boolean);
   if (!entries.length) return;
   const keysOf = Object.fromEntries(entries);
+  const start = v => startOf[v] || (VENUES[v].primary && keysOf[v].includes(VENUES[v].primary) ? VENUES[v].primary : keysOf[v][0]);
   const formSel = el.dataset.form || (multi ? '#forespoergsel' : '');
 
   let box = el, tabs = null;
@@ -39,7 +43,7 @@ function mount(el, VENUES) {
     if (!tabs) return;
     tabs.innerHTML = '';
     for (const [v] of entries) {
-      const b = btn(VENUES[v].tab || VENUES[v].name, {}, () => v !== venue && show(v, VENUES[v].primary && keysOf[v].includes(VENUES[v].primary) ? VENUES[v].primary : keysOf[v][0]));
+      const b = btn(VENUES[v].tab || VENUES[v].name, {}, () => v !== venue && show(v, start(v)));
       b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', v === venue);
       tabs.appendChild(b);
     }
@@ -118,8 +122,7 @@ function mount(el, VENUES) {
   const deep = multi && keysOf[hv];
   const venue = deep ? hv : entries[0][0];
   const want = deep && keysOf[hv].includes(hl.join('-')) ? hl.join('-') : null;
-  const V = VENUES[venue];
-  viewer.show(venue, want || (V.primary && keysOf[venue].includes(V.primary) ? V.primary : keysOf[venue][0]), true);
+  viewer.show(venue, want || start(venue), true);
   if (deep) setTimeout(() => el.scrollIntoView({ block: 'start' }), 300);
 }
 export function boot(VENUES) {
