@@ -14,11 +14,11 @@ Filerne i `dist/` hentes af hjemmesiden via jsDelivr. Der ligger intet hemmeligt
 
    Ét rum alene: `<div class="far3d" data-venue="palmehus" data-layouts="langbord,reception,tom" data-form="#forespoergsel"></div>`
 
-2. Under sidens Custom code → Before `</body>` tag (versionen står i adressen):
+2. Under sidens Custom code → Before `</body>` tag. Adressen peger på en bestemt commit (`@<commit>`), så siden aldrig ændrer sig uden, at vi skifter adressen:
 
    ```html
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/FARcph/far3d@v1.0.0/dist/far3d.css">
-   <script type="module" src="https://cdn.jsdelivr.net/gh/FARcph/far3d@v1.0.0/dist/far3d-alle.js"></script>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/FARcph/far3d@COMMIT/dist/far3d.css">
+   <script type="module" src="https://cdn.jsdelivr.net/gh/FARcph/far3d@COMMIT/dist/far3d-alle.js"></script>
    ```
 
    Til ét rum kan den mindre fil bruges: `far3d-palmehus.js`, `far3d-plateau.js`, `far3d-restaurant.js` eller `far3d-huset.js`.
@@ -39,9 +39,9 @@ Direkte links: `/lej-stedet#palmehus-langbord`, `/lej-stedet#huset`, `/lej-stede
 ```bash
 npm install
 npm run build
-git commit -am "..." && git tag v1.0.1 && git push --follow-tags
+git commit -am "..." && git push
 ```
 
-Opdatér derefter versionen i adressen på hjemmesiden (v1.0.0 → v1.0.1) og udgiv.
+Skift derefter `COMMIT` i adressen på hjemmesiden til den nye commit (`git rev-parse HEAD`) og udgiv. Den aktuelle commit på hjemmesiden står i Lej stedet → Page settings → Custom code.
 
 Mål stammer fra Lendagers tegninger (2019) og er vejledende.
